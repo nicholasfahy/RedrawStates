@@ -23,19 +23,19 @@ var year = null,
 
 var setYear = function(newYear) {
   // Currently the 1990 SF1 API is down :-/
-  if (newYear === '2000') {
-    year = newYear;
-    dataFile = 'data/us2000.json';
-    partyToCandidate = {
-      'dem': 'Al Gore',
-      'gop': 'George W. Bush',
-      'grn': "Green Party",
-      'lib': 'Libertarian Party',
-      'una': 'Unaffiliated',
-      'oth': 'Other'
-    }
-    loser = 'Al Gore';
-  } else
+  // if (newYear === '2000') {
+  //   year = newYear;
+  //   dataFile = 'data/us2000.json';
+  //   partyToCandidate = {
+  //     'dem': 'Al Gore',
+  //     'gop': 'George W. Bush',
+  //     'grn': "Green Party",
+  //     'lib': 'Libertarian Party',
+  //     'una': 'Unaffiliated',
+  //     'oth': 'Other'
+  //   }
+  //   loser = 'Al Gore';
+  // } else
   if (newYear === '2004') {
     year = newYear;
     dataFile = 'data/us2004.json';
@@ -128,7 +128,7 @@ for (let i = 0; i < STATE_ABBREVS.length; ++i) {
   stateToNumber[STATE_ABBREVS[i]] = i;
 }
 
-const tableHeaders = ['population', 'electors', 'dem', 'gop', 'lib', 'grn', 'una', 'oth'];
+const tableHeaders = ['population', 'electors', 'dem', 'gop', 'lib', 'grn', 'una', 'oth', 'Dem %', 'GOP %'];
 
 /* Global state variables */
 var MOVE_KEY = 77;
@@ -227,6 +227,19 @@ tooltipTr.append('th').html('Candidate');
 tooltipTr.append('th').html('Votes');
 tooltipTr.append('th').html('Pct.');
 var tooltipTbody = tooltipTable.append('tbody');
+
+// /* State detail tooltip */
+// var tooltipState = d3.select('body').append('div')
+//             .attr('class', 'hidden tooltip');
+// 
+// var tooltipInnerState = tooltipState.append('div').attr('class', 'tooltip-inner');
+// var tooltipTitleState = tooltipInnerState.append('div').attr('class', 'tooltip-title');
+// var tooltipTableState = tooltipInnerState.append('div').attr('class', 'tooltip-content').append('table').attr('class', 'table state-results');
+// var tooltipTrState = tooltipTableState.append('thead').append('tr')
+// tooltipTrState.append('th').html('Candidate');
+// tooltipTrState.append('th').html('Votes');
+// tooltipTrState.append('th').html('Pct.');
+// var tooltipTbodyState = tooltipTableState.append('tbody');
 
 /* Setup instructions tooltip */
 d3.select("#instructionsHelper")
@@ -440,6 +453,7 @@ var update = function() {
           me.classed("selection-color", false);
         }
 
+        // NICK very important for tomorrow
         // Initialize the county level detail
         tooltipTitle.selectAll(".tooltip-title-heading")
           .data([d.properties.name])
@@ -504,7 +518,44 @@ var update = function() {
         // Else, we'll just keep the boundary
         return "state-boundary state-boundary-filled";
       }
+    //  .on('mousemove', function(ev, d) {
+    //    // Show county level detail
+    //    tooltip.classed('hidden', false)
+    //      .attr('style', 'left:' + (ev.pageX + 15) + 'px; top:' + (ev.pageY - 15) + 'px');
     })
+    //  .on('mouseover', function(ev, d) {
+//
+    //    // Initialize the state level detail Nick
+    //    tooltipTitleState.selectAll(".tooltip-title-heading-state")
+    //      .data([d.properties.name])
+    //      .join("div")
+    //      .attr("class", "tooltip-title-heading-state")
+    //      .html(d => d);
+//
+    //    tooltipTitleState.selectAll(".tooltip-title-state-heading-state")
+    //      .data([d.properties.state])
+    //      .join("div")
+    //      .attr("class", "tooltip-title-state-heading-state")
+    //      .html(d => d);
+//
+    //    let thisData = [];
+    //    let total = 0;
+    //    for (var party in partyToCandidate) {
+    //      var partyTotal = hasOrZero(d.properties, party);
+    //      if (partyTotal > 0) {
+    //        thisData.push([partyToCandidate[party], partyTotal]);
+    //        total += partyTotal;
+    //      }
+    //    }
+//
+    //    tooltipTbody.selectAll("tr")
+    //      .data(thisData)
+    //      .join("tr")
+    //      .selectAll("td")
+    //      .data(d => [d[0], d[1], (100 * d[1] / total).toFixed(2) + '%'])
+    //      .join("td")
+    //      .html((d, i) => i === 0 ? d : intWithCommas(d));
+    //  })
 
   // Setup zoom. Order seems to be important, so it should go here.
   svg.call(d3.zoom().extent([[0, 0], [960, 500]]).scaleExtent([1, 12]).on("zoom", zoomed));
@@ -590,13 +641,73 @@ var update = function() {
           ((solidDemTotal + likelyDemTotal + leanDemTotal + tossupTotal + leanGopTotal) / totalSenators * 100) + '%, #B22222 ' +
           ((solidDemTotal + likelyDemTotal + leanDemTotal + tossupTotal + leanGopTotal + likelyGopTotal) / totalSenators * 100) + '%, #960018 ' +
           ((solidDemTotal + likelyDemTotal + leanDemTotal + tossupTotal + leanGopTotal + likelyGopTotal) / totalSenators * 100) + '%, #960018 100%)');
-  d3.select(".sen-bar-solid-dem-total").text("Solid D: " + solidDemTotal);
-  d3.select(".sen-bar-likely-dem-total").text("Likely D: " + likelyDemTotal);
-  d3.select(".sen-bar-lean-dem-total").text("Lean D: " + leanDemTotal);
-  d3.select(".sen-bar-tossup-total").text("Tossup: " + tossupTotal);
-  d3.select(".sen-bar-lean-gop-total").text("Lean R: " + leanGopTotal);
-  d3.select(".sen-bar-likely-gop-total").text("Likely R: " + likelyGopTotal);
-  d3.select(".sen-bar-solid-gop-total").text("Solid R: " + solidGopTotal);
+  
+
+  var solidDemMsg = ""; 
+  if (solidDemTotal > 6) {
+    solidDemMsg = "Solid D: " + solidDemTotal;
+  } else if (solidDemTotal > 0) {
+    solidDemMsg = solidDemTotal;
+  }
+
+  var likelyDemMsg = ""; 
+  if (likelyDemTotal > 6) {
+    likelyDemMsg = "Likely D: " + likelyDemTotal;
+  } else if (likelyDemTotal > 0) {
+    likelyDemMsg = likelyDemTotal;
+  }
+
+  var leanDemMsg = ""; 
+  if (leanDemTotal > 6) {
+    leanDemMsg = "Lean D: " + leanDemTotal;
+  } else if (leanDemTotal > 0) {
+    leanDemMsg = leanDemTotal;
+  }
+
+  var tossupMsg = ""; 
+  if (tossupTotal > 6) {
+    tossupMsg = "Tossup: " + tossupTotal;
+  } else if (tossupTotal > 0) {
+    tossupMsg = tossupTotal;
+  }
+
+  var leanGopMsg = ""; 
+  if (leanGopTotal > 6) {
+    leanGopMsg = "Lean R: " + leanGopTotal;
+  } else if (leanGopTotal > 0) {
+    leanGopMsg = leanGopTotal;
+  }
+
+  var likelyGopMsg = ""; 
+  if (likelyGopTotal > 6) {
+    likelyGopMsg = "Likely R: " + likelyGopTotal;
+  } else if (likelyGopTotal > 0) {
+    likelyGopMsg = likelyGopTotal;
+  }
+
+  var solidGopMsg = ""; 
+  if (solidGopTotal > 6) {
+    solidGopMsg = "Solid R: " + solidGopTotal;
+  } else if (solidGopTotal > 0) {
+    solidGopMsg = solidGopTotal;
+  }
+    
+  d3.select(".sen-bar-solid-dem-total").text(solidDemMsg);
+  d3.select(".sen-bar-likely-dem-total").text(likelyDemMsg);
+  d3.select(".sen-bar-lean-dem-total").text(leanDemMsg);
+  d3.select(".sen-bar-tossup-total").text(tossupMsg);
+  d3.select(".sen-bar-lean-gop-total").text(leanGopMsg);
+  d3.select(".sen-bar-likely-gop-total").text(likelyGopMsg);
+  d3.select(".sen-bar-solid-gop-total").text(solidGopMsg);
+
+  d3.select(".sen-bar-solid-dem-total").style.width=(solidDemTotal * 100 / totalSenators)+'%';
+  console.log((solidDemTotal * 100 / totalSenators)+'%');
+  d3.select(".sen-bar-likely-dem-total").style.width=(likelyDemTotal * 100 / totalSenators)+'%';
+  d3.select(".sen-bar-lean-dem-total").style.width=(leanDemTotal * 100 / totalSenators)+'%';
+  d3.select(".sen-bar-tossup-total").style.width=(tossupTotal * 100 / totalSenators)+'%';
+  d3.select(".sen-bar-lean-gop-total").style.width=(leanGopTotal * 100 / totalSenators)+'%';
+  d3.select(".sen-bar-likely-gop-total").style.width=(likelyGopTotal * 100 / totalSenators)+'%';
+  d3.select(".sen-bar-solid-gop-total").style.width=(solidGopTotal * 100 / totalSenators)+'%';
 }
 
 /* Read data once! */
@@ -673,6 +784,8 @@ var execReset = function(usData, useUrl) {
     state.lib += hasOrZero(county.properties, 'lib');
     state.una += hasOrZero(county.properties, 'una');
     state.oth += hasOrZero(county.properties, 'oth');
+    state.dempct = state.dem / (state.dem + state.gop + state.grn + state.lib + state.una + state.lib)
+    state.goppct = state.gop / (state.dem + state.gop + state.grn + state.lib + state.una + state.lib)
   }
 
   update();

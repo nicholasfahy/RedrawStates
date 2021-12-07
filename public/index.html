@@ -65,13 +65,6 @@
         <div class='sen-bar-solid-gop-total'></div>
         <div class='sen-bar-likely-gop-total'></div>
         <div class='sen-bar-lean-gop-total'></div>
-        <script>
-          let body = document.querySelector('body')
-          document.querySelector('solid-dem').addEventListener('click', function()
-            {
-                body.style.left = (135 + (solidDemTotal / totalSenators) * 1140) + px;
-            });
-        </script>
       </div>
     </div>
   </div>
@@ -142,6 +135,8 @@
           <td>Libertarian</td>
           <td>McMullin</td>
           <td>Other</td>
+          <td>Dem %</td>
+          <td>GOP %</td>
         </thead>
         <tbody id="states"></tbody>
       </table>
