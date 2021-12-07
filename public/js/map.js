@@ -23,19 +23,19 @@ var year = null,
 
 var setYear = function(newYear) {
   // Currently the 1990 SF1 API is down :-/
-  // if (newYear === '2000') {
-  //   year = newYear;
-  //   dataFile = 'data/us2000.json';
-  //   partyToCandidate = {
-  //     'dem': 'Al Gore',
-  //     'gop': 'George W. Bush',
-  //     'grn': "Green Party",
-  //     'lib': 'Libertarian Party',
-  //     'una': 'Unaffiliated',
-  //     'oth': 'Other'
-  //   }
-  //   loser = 'Al Gore';
-  // } else
+  if (newYear === '2000') {
+    year = newYear;
+    dataFile = 'data/us2000.json';
+    partyToCandidate = {
+      'dem': 'Al Gore',
+      'gop': 'George W. Bush',
+      'grn': "Green Party",
+      'lib': 'Libertarian Party',
+      'una': 'Unaffiliated',
+      'oth': 'Other'
+    }
+    loser = 'Al Gore';
+  } else
   if (newYear === '2004') {
     year = newYear;
     dataFile = 'data/us2004.json';
@@ -72,18 +72,7 @@ var setYear = function(newYear) {
       'oth': 'Other'
     }
     loser = 'Mitt Romney';
-  } else if (newYear === '2016i') {
-    year = newYear;
-    dataFile = 'data/us2016income.json';
-    partyToCandidate = {
-      'dem': 'Hillary Clinton',
-      'gop': 'Donald Trump',
-      'grn': "Jill Stein",
-      'lib': 'Gary Johnson',
-      'una': 'Evan McMullin',
-      'oth': 'Other'
-    }
-    loser = 'Hillary Clinton';
+
   } else if (newYear == '2020') {
     year = newYear;
     dataFile = 'data/us2020.json';
@@ -101,7 +90,7 @@ var setYear = function(newYear) {
     dataFile = 'data/us.json';
     partyToCandidate = {
       'dem': 'Hillary Clinton',
-      'gop': 'Donald Trump',
+      'gop': 'Bernie Sanders',
       'grn': "Jill Stein",
       'lib': 'Gary Johnson',
       'una': 'Evan McMullin',
@@ -284,12 +273,14 @@ var computeElectors = function() {
       priorities.push({key: state, val: stateTotals[state].population / Math.sqrt(2)});
     }
   }
+
   priorities.sort(function(a, b) {
     if (a.val === b.val) {
       return 0;
     }
     return a.val < b.val ? 1 : -1;
   });
+
   while (allocated < maxElectors) {
     var nextUp = priorities[0];
     var nextState = stateTotals[nextUp.key];
@@ -518,14 +509,16 @@ var update = function() {
   // Setup zoom. Order seems to be important, so it should go here.
   svg.call(d3.zoom().extent([[0, 0], [960, 500]]).scaleExtent([1, 12]).on("zoom", zoomed));
 
-  // Recompute the total number of electoral votes
+  // Recompute the total number of electoral votes and senators
   var demTotal = 0;
   var gopTotal = 0;
   var totalElectors = 0;
+  var totalSenators = 0;
   for (var i=0; i<STATE_ABBREVS.length; ++i) {
     var state = STATE_ABBREVS[i];
     var s = stateTotals[state];
     totalElectors += s.electors;
+    totalSenators +=2;
     if (s.dem > s.gop) {
       demTotal += s.electors;
     } else {
@@ -533,11 +526,77 @@ var update = function() {
     }
   }
 
+  // Get the average Dem two-party vote share Nick
+  var totalDem = 0;
+  var totalGop = 0;
+  for (var i=0; i<STATE_ABBREVS.length; ++i) {
+    var state = STATE_ABBREVS[i];
+    var s = stateTotals[state];
+    totalDem += s.dem;
+    totalGop += s.gop;
+  }
+
+  var demVoteShare = totalDem / (totalDem + totalGop);
+
+  // Recompute the total number of Senate votes Nick
+  var solidDemTotal = 0;
+  var likelyDemTotal = 0;
+  var leanDemTotal = 0;
+  var tossupTotal = 0;
+  var leanGopTotal = 0;
+  var likelyGopTotal = 0;
+  var solidGopTotal = 0;
+  var totalElectors = 0;
+  for (var i=0; i<STATE_ABBREVS.length; ++i) {
+    var state = STATE_ABBREVS[i];
+    var s = stateTotals[state];
+    totalElectors += s.electors;
+    if (state !== 'DC' && s.dem != 0) {
+      if (s.dem/(s.dem + s.gop) - demVoteShare > .15) {
+        solidDemTotal += 2;
+      } else if (s.dem/(s.dem + s.gop) - demVoteShare > .10) {
+        likelyDemTotal += 2;
+      } else if (s.dem/(s.dem + s.gop) - demVoteShare > .05) {
+        leanDemTotal += 2;
+      } else if (s.dem/(s.dem + s.gop) - demVoteShare > -.05) {
+        tossupTotal += 2;
+      } else if (s.dem/(s.dem + s.gop) - demVoteShare > -.10) {
+        leanGopTotal += 2;
+      } else if (s.dem/(s.dem + s.gop) - demVoteShare > -.15) {
+        likelyGopTotal += 2;
+      } else {
+        solidGopTotal += 2;
+      }
+    }
+  }
+
   // Color and fill in EV bar
   d3.select('.ev-bar')
-    .attr('style', 'background: linear-gradient(to right, #179ee0 0%, #179ee0 ' + (demTotal / totalElectors * 100) + '%, #ff5d40 ' + (demTotal / totalElectors * 100) + '%, #ff5d40 100%)');
+    .attr('style', 'background: linear-gradient(to right, #179ee0 ' + (demTotal / totalElectors * 100) + '%, #ff5d40 ' + (demTotal / totalElectors * 100) + '%, #ff5d40 100%)');
   d3.select(".ev-bar-dem-total").text(demTotal);
   d3.select(".ev-bar-gop-total").text(gopTotal);
+
+  d3.select('.sen-bar')
+    .attr('style', 'background: linear-gradient(to right, #002D62 ' + 
+          (solidDemTotal / totalSenators * 100) + '%, #0000FF ' + 
+          (solidDemTotal / totalSenators * 100) + '%, #0000FF ' +
+          ((solidDemTotal + likelyDemTotal) / totalSenators * 100) + '%, #4F86F7 ' + 
+          ((solidDemTotal + likelyDemTotal) / totalSenators * 100) + '%, #4F86F7 ' + 
+          ((solidDemTotal + likelyDemTotal + leanDemTotal) / totalSenators * 100) + '%, #808080 ' +
+          ((solidDemTotal + likelyDemTotal + leanDemTotal) / totalSenators * 100) + '%, #808080 ' +
+          ((solidDemTotal + likelyDemTotal + leanDemTotal + tossupTotal) / totalSenators * 100) + '%, #EA4C46 ' +
+          ((solidDemTotal + likelyDemTotal + leanDemTotal + tossupTotal) / totalSenators * 100) + '%, #EA4C46 ' +
+          ((solidDemTotal + likelyDemTotal + leanDemTotal + tossupTotal + leanGopTotal) / totalSenators * 100) + '%, #B22222 ' +
+          ((solidDemTotal + likelyDemTotal + leanDemTotal + tossupTotal + leanGopTotal) / totalSenators * 100) + '%, #B22222 ' +
+          ((solidDemTotal + likelyDemTotal + leanDemTotal + tossupTotal + leanGopTotal + likelyGopTotal) / totalSenators * 100) + '%, #960018 ' +
+          ((solidDemTotal + likelyDemTotal + leanDemTotal + tossupTotal + leanGopTotal + likelyGopTotal) / totalSenators * 100) + '%, #960018 100%)');
+  d3.select(".sen-bar-solid-dem-total").text("Solid D: " + solidDemTotal);
+  d3.select(".sen-bar-likely-dem-total").text("Likely D: " + likelyDemTotal);
+  d3.select(".sen-bar-lean-dem-total").text("Lean D: " + leanDemTotal);
+  d3.select(".sen-bar-tossup-total").text("Tossup: " + tossupTotal);
+  d3.select(".sen-bar-lean-gop-total").text("Lean R: " + leanGopTotal);
+  d3.select(".sen-bar-likely-gop-total").text("Likely R: " + likelyGopTotal);
+  d3.select(".sen-bar-solid-gop-total").text("Solid R: " + solidGopTotal);
 }
 
 /* Read data once! */
@@ -565,7 +624,6 @@ var execReset = function(usData, useUrl) {
 
   g.selectAll('path').remove();
   d3.selectAll('#states>tr').remove();
-  $("#lede").html("How few counties can you move to make " + loser + " win the " + year + " election?");
 
   if (useUrl) {
     var shareParameter = getParameterByName('share');
@@ -621,80 +679,3 @@ var execReset = function(usData, useUrl) {
 }
 
 reset(dataFile, true);
-
-
-/**** Sharing ****/
-
-/* Turn map into URL */
-var getShareUrl = function() {
-  us.objects.counties.geometries.sort((x, y) => parseInt(x.properties.id) - parseInt(y.properties.id));
-
-  shareUrl = [];
-  var curLetter = null;
-  var curStreak = 0;
-
-  for (var i=0; i<us.objects.counties.geometries.length; ++i) {
-    var geom = us.objects.counties.geometries[i];
-    var letter = geom.hasOwnProperty('properties') ?
-      numberToLetter[stateToNumber[geom.properties.state]] :
-      numberToLetter[51];
-
-    if (letter === curLetter) {
-      curStreak++;
-    } else {
-      if (curStreak === 1) {
-        shareUrl.push(curLetter);
-      } else if (curStreak > 1) {
-        shareUrl.push(curStreak + curLetter);
-      }
-      curLetter = letter;
-      curStreak = 1;
-    }
-  }
-  shareUrl.push(curStreak + curLetter);
-
-  var baseUrl = window.location.origin + window.location.pathname + '?';
-  if (year !== '2020') {
-    baseUrl += 'year=' + year + '&';
-  }
-  return baseUrl + 'share=' + shareUrl.join('');
-}
-
-/* Setup sharing URL in the share box */
-var doShare = function() {
-  $("#clipboard-target").val(getShareUrl());
-}
-
-$("#shareGroup").hide();
-
-$("#shareButton").popover({
-  container: 'body',
-  content: $("#shareGroup"),
-  title: "Copy URL to Share",
-  html: true,
-  placement: "left",
-  trigger: "focus"
-}).on("click", doShare).on('show.bs.popover', () => $("#shareGroup").show());
-
-var clipboard = new Clipboard('[data-clipboard-tooltip]');
-clipboard.on('success', function(e) {
-  e.clearSelection();
-  console.info('Action:', e.action);
-  console.info('Text:', e.text);
-  console.info('Trigger:', e.trigger);
-});
-
-d3.select("#selectYear").on("change", function(ev) {
-  var newYear = ev.target.selectedOptions[0].value;
-  setYear(newYear);
-  reset(dataFile, false);
-})
-
-var zoomed = function({transform}) {
-  g.attr("transform", transform)
-  if (transform.k >= 5) {
-    g.classed('wide-zoom-stroke', false).classed('close-zoom-stroke', true);
-  } else {
-    g.classed('wide-zoom-stroke', true).classed('close-zoom-stroke', false);
-  }
-}
