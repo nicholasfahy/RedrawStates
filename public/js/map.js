@@ -22,20 +22,6 @@ var year = null,
     partyToCandidate = null;
 
 var setYear = function(newYear) {
-  // Currently the 1990 SF1 API is down :-/
-  // if (newYear === '2000') {
-  //   year = newYear;
-  //   dataFile = 'data/us2000.json';
-  //   partyToCandidate = {
-  //     'dem': 'Al Gore',
-  //     'gop': 'George W. Bush',
-  //     'grn': "Green Party",
-  //     'lib': 'Libertarian Party',
-  //     'una': 'Unaffiliated',
-  //     'oth': 'Other'
-  //   }
-  //   loser = 'Al Gore';
-  // } else
   if (newYear === '2004') {
     year = newYear;
     dataFile = 'data/us2004.json';
@@ -90,7 +76,7 @@ var setYear = function(newYear) {
     dataFile = 'data/us.json';
     partyToCandidate = {
       'dem': 'Hillary Clinton',
-      'gop': 'Bernie Sanders',
+      'gop': 'Donald Trump',
       'grn': "Jill Stein",
       'lib': 'Gary Johnson',
       'una': 'Evan McMullin',
@@ -128,7 +114,7 @@ for (let i = 0; i < STATE_ABBREVS.length; ++i) {
   stateToNumber[STATE_ABBREVS[i]] = i;
 }
 
-const tableHeaders = ['population', 'electors', 'dem', 'gop', 'lib', 'grn', 'una', 'oth', 'Dem %', 'GOP %'];
+const tableHeaders = ['population', 'electors', 'dem', 'gop', 'grn', 'lib', 'una', 'oth'];
 
 /* Global state variables */
 var MOVE_KEY = 77;
@@ -227,19 +213,6 @@ tooltipTr.append('th').html('Candidate');
 tooltipTr.append('th').html('Votes');
 tooltipTr.append('th').html('Pct.');
 var tooltipTbody = tooltipTable.append('tbody');
-
-// /* State detail tooltip */
-// var tooltipState = d3.select('body').append('div')
-//             .attr('class', 'hidden tooltip');
-// 
-// var tooltipInnerState = tooltipState.append('div').attr('class', 'tooltip-inner');
-// var tooltipTitleState = tooltipInnerState.append('div').attr('class', 'tooltip-title');
-// var tooltipTableState = tooltipInnerState.append('div').attr('class', 'tooltip-content').append('table').attr('class', 'table state-results');
-// var tooltipTrState = tooltipTableState.append('thead').append('tr')
-// tooltipTrState.append('th').html('Candidate');
-// tooltipTrState.append('th').html('Votes');
-// tooltipTrState.append('th').html('Pct.');
-// var tooltipTbodyState = tooltipTableState.append('tbody');
 
 /* Setup instructions tooltip */
 d3.select("#instructionsHelper")
@@ -361,11 +334,15 @@ var update = function() {
     .selectAll("td")
     .data(function (d, i) {
       let state = stateTotals[STATE_ABBREVS[i]];
+      let totalVotes = state.dem + state.gop + state.grn + state.lib + state.una + state.oth;
+
       if (displayMode === 'raw') {
+        
+        // CS 50: Created and added return values to the "Details" table here for Democratic percentage, Republican percentage, Senate Lean (using the senateLean helper function I created) and I also merged third party results
         return [STATE_ABBREVS[i], state.population, state.electors,
-                state.dem, state.gop, state.grn, state.lib, state.una, state.oth];
+                state.dem, state.gop, state.grn + state.lib + state.una + state.oth, 
+                (state.dem / totalVotes * 100).toFixed(2) + '%', (state.gop / totalVotes * 100).toFixed(2) + '%', senateLean(state)];
       } else {
-        let totalVotes = state.dem + state.gop + state.grn + state.lib + state.una + state.oth;
         return [STATE_ABBREVS[i], state.population, state.electors,
                 (state.dem / totalVotes * 100).toFixed(2) + '%',
                 (state.gop / totalVotes * 100).toFixed(2) + '%',
@@ -453,7 +430,6 @@ var update = function() {
           me.classed("selection-color", false);
         }
 
-        // NICK very important for tomorrow
         // Initialize the county level detail
         tooltipTitle.selectAll(".tooltip-title-heading")
           .data([d.properties.name])
@@ -518,49 +494,12 @@ var update = function() {
         // Else, we'll just keep the boundary
         return "state-boundary state-boundary-filled";
       }
-    //  .on('mousemove', function(ev, d) {
-    //    // Show county level detail
-    //    tooltip.classed('hidden', false)
-    //      .attr('style', 'left:' + (ev.pageX + 15) + 'px; top:' + (ev.pageY - 15) + 'px');
     })
-    //  .on('mouseover', function(ev, d) {
-//
-    //    // Initialize the state level detail Nick
-    //    tooltipTitleState.selectAll(".tooltip-title-heading-state")
-    //      .data([d.properties.name])
-    //      .join("div")
-    //      .attr("class", "tooltip-title-heading-state")
-    //      .html(d => d);
-//
-    //    tooltipTitleState.selectAll(".tooltip-title-state-heading-state")
-    //      .data([d.properties.state])
-    //      .join("div")
-    //      .attr("class", "tooltip-title-state-heading-state")
-    //      .html(d => d);
-//
-    //    let thisData = [];
-    //    let total = 0;
-    //    for (var party in partyToCandidate) {
-    //      var partyTotal = hasOrZero(d.properties, party);
-    //      if (partyTotal > 0) {
-    //        thisData.push([partyToCandidate[party], partyTotal]);
-    //        total += partyTotal;
-    //      }
-    //    }
-//
-    //    tooltipTbody.selectAll("tr")
-    //      .data(thisData)
-    //      .join("tr")
-    //      .selectAll("td")
-    //      .data(d => [d[0], d[1], (100 * d[1] / total).toFixed(2) + '%'])
-    //      .join("td")
-    //      .html((d, i) => i === 0 ? d : intWithCommas(d));
-    //  })
-
   // Setup zoom. Order seems to be important, so it should go here.
   svg.call(d3.zoom().extent([[0, 0], [960, 500]]).scaleExtent([1, 12]).on("zoom", zoomed));
 
-  // Recompute the total number of electoral votes and senators
+  // Recompute the total number of electoral votes
+  // CS 50: Added lines 506 and 511 to the existing code here to calculate the total number of senators, which is dynamic (if a user moves all three counties from Delaware into Maryland, then Delaware ceases to exist and there would be 98 senators), but always made up of two senators per state
   var demTotal = 0;
   var gopTotal = 0;
   var totalElectors = 0;
@@ -576,20 +515,10 @@ var update = function() {
       gopTotal += s.electors;
     }
   }
-
-  // Get the average Dem two-party vote share Nick
-  var totalDem = 0;
-  var totalGop = 0;
-  for (var i=0; i<STATE_ABBREVS.length; ++i) {
-    var state = STATE_ABBREVS[i];
-    var s = stateTotals[state];
-    totalDem += s.dem;
-    totalGop += s.gop;
-  }
-
-  var demVoteShare = totalDem / (totalDem + totalGop);
-
-  // Recompute the total number of Senate votes Nick
+  
+ // CS 50: Added lines 522-551 here, which compute the total number of solid, likely, and lean seats for each party as well as tossups. These figures in turn affect the numbering and coloring of the Senate Bias Meter
+ // CS 50: Line 532 ensures a state with 0 population does not get senators, and it also prevents the bar from counting D.C. as a state, which hopefully Congress will give me occasion to change.
+ // CS 50: See senateLean helper function for more information on how we determine what states are solid, likely, or lean for each party, or tossups
   var solidDemTotal = 0;
   var likelyDemTotal = 0;
   var leanDemTotal = 0;
@@ -597,23 +526,23 @@ var update = function() {
   var leanGopTotal = 0;
   var likelyGopTotal = 0;
   var solidGopTotal = 0;
-  var totalElectors = 0;
+
   for (var i=0; i<STATE_ABBREVS.length; ++i) {
     var state = STATE_ABBREVS[i];
     var s = stateTotals[state];
-    totalElectors += s.electors;
     if (state !== 'DC' && s.dem != 0) {
-      if (s.dem/(s.dem + s.gop) - demVoteShare > .15) {
+      let demShare = (s.dem/(s.dem + s.gop) - demVotingShare())
+      if (demShare > .09) {
         solidDemTotal += 2;
-      } else if (s.dem/(s.dem + s.gop) - demVoteShare > .10) {
+      } else if (demShare > .06) {
         likelyDemTotal += 2;
-      } else if (s.dem/(s.dem + s.gop) - demVoteShare > .05) {
+      } else if (demShare > .03) {
         leanDemTotal += 2;
-      } else if (s.dem/(s.dem + s.gop) - demVoteShare > -.05) {
+      } else if (demShare > -.03) {
         tossupTotal += 2;
-      } else if (s.dem/(s.dem + s.gop) - demVoteShare > -.10) {
+      } else if (demShare > -.06) {
         leanGopTotal += 2;
-      } else if (s.dem/(s.dem + s.gop) - demVoteShare > -.15) {
+      } else if (demShare > -.09) {
         likelyGopTotal += 2;
       } else {
         solidGopTotal += 2;
@@ -623,10 +552,11 @@ var update = function() {
 
   // Color and fill in EV bar
   d3.select('.ev-bar')
-    .attr('style', 'background: linear-gradient(to right, #179ee0 ' + (demTotal / totalElectors * 100) + '%, #ff5d40 ' + (demTotal / totalElectors * 100) + '%, #ff5d40 100%)');
+    .attr('style', 'background: linear-gradient(to right, #179ee0 0%, #179ee0 ' + (demTotal / totalElectors * 100) + '%, #ff5d40 ' + (demTotal / totalElectors * 100) + '%, #ff5d40 100%)');
   d3.select(".ev-bar-dem-total").text(demTotal);
   d3.select(".ev-bar-gop-total").text(gopTotal);
 
+  // CS 50: Created the Senate bar color gradient below, which goes from dark blue to dark red depending on the number of red or blue seats
   d3.select('.sen-bar')
     .attr('style', 'background: linear-gradient(to right, #002D62 ' + 
           (solidDemTotal / totalSenators * 100) + '%, #0000FF ' + 
@@ -643,6 +573,10 @@ var update = function() {
           ((solidDemTotal + likelyDemTotal + leanDemTotal + tossupTotal + leanGopTotal + likelyGopTotal) / totalSenators * 100) + '%, #960018 100%)');
   
 
+  // CS 50: Created the string "Msg" variables below, which are for the text within the Senate Bias Meter.
+  // CS 50: They ensure that if there's room within a section (i.e.; if there's > 6 elements), the Meter will display, for example, "Lean R: 14"
+  // CS 50: If there are 2 <= x <= 6 elements in a section, the Meter will just display the number, i.e.; 14
+  // CS 50: But if there are no elements in a section, (i.e.; if there are no Solid D seats) the bar will not display anything. We don't need to worry about there being 1 senator because every state has 2, and for this map's purposes they're never split.
   var solidDemMsg = ""; 
   if (solidDemTotal > 6) {
     solidDemMsg = "Solid D: " + solidDemTotal;
@@ -692,6 +626,7 @@ var update = function() {
     solidGopMsg = solidGopTotal;
   }
     
+  // CS 50: Created this select command, which prints the message defined above with styling from CSS
   d3.select(".sen-bar-solid-dem-total").text(solidDemMsg);
   d3.select(".sen-bar-likely-dem-total").text(likelyDemMsg);
   d3.select(".sen-bar-lean-dem-total").text(leanDemMsg);
@@ -700,15 +635,58 @@ var update = function() {
   d3.select(".sen-bar-likely-gop-total").text(likelyGopMsg);
   d3.select(".sen-bar-solid-gop-total").text(solidGopMsg);
 
-  d3.select(".sen-bar-solid-dem-total").style.width=(solidDemTotal * 100 / totalSenators)+'%';
-  console.log((solidDemTotal * 100 / totalSenators)+'%');
-  d3.select(".sen-bar-likely-dem-total").style.width=(likelyDemTotal * 100 / totalSenators)+'%';
-  d3.select(".sen-bar-lean-dem-total").style.width=(leanDemTotal * 100 / totalSenators)+'%';
-  d3.select(".sen-bar-tossup-total").style.width=(tossupTotal * 100 / totalSenators)+'%';
-  d3.select(".sen-bar-lean-gop-total").style.width=(leanGopTotal * 100 / totalSenators)+'%';
-  d3.select(".sen-bar-likely-gop-total").style.width=(likelyGopTotal * 100 / totalSenators)+'%';
-  d3.select(".sen-bar-solid-gop-total").style.width=(solidGopTotal * 100 / totalSenators)+'%';
+  // CS 50: Created this command, which positions the message dynamically within the bar (Solid D on top of Solid D coloring and so forth), and ensures that it changes dynamically as the number of seats in each category change
+  document.getElementById("sen-bar-solid-dem-total").style.width = (solidDemTotal * 100 / totalSenators) + '%';
+  document.getElementById("sen-bar-likely-dem-total").style.width = (likelyDemTotal * 100 / totalSenators) + '%';
+  document.getElementById("sen-bar-lean-dem-total").style.width = (leanDemTotal * 100 / totalSenators) + '%';
+  document.getElementById("sen-bar-tossup-total").style.width = (tossupTotal * 100 / totalSenators) + '%';
+  document.getElementById("sen-bar-lean-gop-total").style.width = (leanGopTotal * 100 / totalSenators) + '%';
+  document.getElementById("sen-bar-likely-gop-total").style.width = (likelyGopTotal * 100 / totalSenators) + '%';
+  document.getElementById("sen-bar-solid-gop-total").style.width = (solidGopTotal * 100 / totalSenators) + '%';
 }
+
+// CS 5O: Created this helper function, which returns the proportion of the nationwide two-party vote share won by the Democrat. Used in the helper function directly below this one.
+function demVotingShare() {
+  var totalDem = 0;
+  var totalGop = 0;
+  for (var i=0; i<STATE_ABBREVS.length; ++i) {
+    var state = STATE_ABBREVS[i];
+    var s = stateTotals[state];
+    totalDem += s.dem;
+    totalGop += s.gop;
+  }
+  var demVoteShare = totalDem / (totalDem + totalGop);
+  return demVoteShare;
+}
+
+// CS 50: Created this helper function, which returns a string representing each Senate seat's partisan lean, to be included in the "Details" table at the bottom
+// CS 50: The partisan lean is calculated by subtracting the nationwide proportion of the two-party vote won by the Democrat from the proportion of the two-party vote won in an individual state
+// CS 50: So, if Joe Biden wins 52% of the two-party vote nationally in 2020, but 37% in Alabama, the 2020 Senate lean of Alabama would be .37 - .52 = -.15, or "Solid Republican"
+// CS 50: Senate leans of each state will change as the user manipulates counties and moves them between states
+function senateLean(state) {
+  let lean = state.dem/(state.dem + state.gop) - demVotingShare();
+  if (state.population != 0) {
+    if (lean > .09) {
+      return "Solid Democrat";
+    } else if (lean > .06) {
+        return "Likely Democrat";
+    } else if (lean > .03) {
+        return "Lean Democrat";
+    } else if (lean > -.03) {
+        return "Tossup";
+    } else if (lean > -.06) {
+        return "Lean Republican";
+    } else if (lean > -.09) {
+        return "Likely Republican";
+    } else {
+        return "Solid Republican";
+    }
+  }
+  else {
+    return "--"
+  }
+}
+
 
 /* Read data once! */
 var reset = function(dataFile, useUrl) {
@@ -784,8 +762,6 @@ var execReset = function(usData, useUrl) {
     state.lib += hasOrZero(county.properties, 'lib');
     state.una += hasOrZero(county.properties, 'una');
     state.oth += hasOrZero(county.properties, 'oth');
-    state.dempct = state.dem / (state.dem + state.gop + state.grn + state.lib + state.una + state.lib)
-    state.goppct = state.gop / (state.dem + state.gop + state.grn + state.lib + state.una + state.lib)
   }
 
   update();

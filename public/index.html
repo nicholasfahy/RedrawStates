@@ -2,14 +2,9 @@
 <html>
   <head>
     <title>Nick Fahy's Redraw the States</title>
-    <meta charset="utf-8" />
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:site" content="@khayeswilson" />
-    <meta name="twitter:creator" content="@khayeswilson" />
     <meta property="og:url" content="http://www.kevinhayeswilson.com/redraw" />
     <meta property="og:title" content="How arbitrary is the Electoral College?" />
     <meta property="og:description" content="If Philadelphia were part of New Jersey, Donald Trump would have easily won Pennsylvania. How little do state lines need to move for Trump to have won the election? The answer is shockingly small." />
-    <meta property="og:image" content="https://cdn-images-1.medium.com/max/1000/1*3gg9J1xuYsU2PVv6wxrrJw.png" />
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
@@ -34,6 +29,7 @@
   </span>
 </div>
 
+<!-- CS 50: Added this HTML row -->
 <div class="row">
   <div class="col-sm-12">
     <h3 style="text-align:center;">Electoral College Meter</h3>
@@ -49,22 +45,24 @@
     </div>
   </div>
     
+  <!-- CS 50: Added this HTML row -->
   <div class="row">
     <div class="col-sm-12">
       <h3 style="text-align:center;">Senate Bias Meter</h3>
     </div>
   </div>
 
+  <!-- CS 50: Added this Senate bar. The CSS class "sen-bar" is the bar itself; the "total" classes are the text that populates the bar; the IDs position the text in the correct block-->
   <div class="row">
     <div class="col-sm-12">
       <div class="sen-bar">
-        <div class='sen-bar-solid-dem-total'></div>
-        <div class='sen-bar-likely-dem-total'></div>
-        <div class='sen-bar-lean-dem-total'></div>
-        <div class='sen-bar-tossup-total'></div>
-        <div class='sen-bar-solid-gop-total'></div>
-        <div class='sen-bar-likely-gop-total'></div>
-        <div class='sen-bar-lean-gop-total'></div>
+        <div class='sen-bar-solid-dem-total' id='sen-bar-solid-dem-total'></div>
+        <div class='sen-bar-likely-dem-total' id='sen-bar-likely-dem-total'></div>
+        <div class='sen-bar-lean-dem-total' id='sen-bar-lean-dem-total'></div>
+        <div class='sen-bar-tossup-total' id='sen-bar-tossup-total'></div>
+        <div class='sen-bar-lean-gop-total' id='sen-bar-lean-gop-total'></div>
+        <div class='sen-bar-likely-gop-total' id='sen-bar-likely-gop-total'></div>
+        <div class='sen-bar-solid-gop-total' id='sen-bar-solid-gop-total'></div>
       </div>
     </div>
   </div>
@@ -76,6 +74,7 @@
     <div class="col-sm-2">
       <div class="row">
         <div class="col-sm-12">
+          <!-- CS 50: Updated the instructions here to mention the Senate bias as well -->
           <h2 class="instructions">Instructions</h2>
           <p class="instructions" id="lede">How warped is the United States's political geography?</p>
           <p class="instructions"><a href="#" id="instructionsHelper">Choose a county</a> (or several) to move to a new state. Then click the <b>Move</b> button and the state you want to move your counties to.</p>
@@ -126,17 +125,17 @@
     <div class="col-sm-12">
       <table class="table table-striped" style='text-align: right;'>
         <thead>
+          <!-- CS 50: Updated this table to consolidate third parties and add columns for both major parties' percentages, as well as the Senate lean of the state -->
+          <!-- CS 50: Note that the percentages used in the Dem % and GOP % are different from those used elsewhere to calculate states' partisan lean: These are the percentages of all votes cast, while we use percentage of votes cast between the two parties (Dem votes / (Dem votes + GOP votes)) to calculate partisan lean -->
           <td>State</td>
           <td>Population</td>
           <td>Electors</td>
           <td>Democrat</td>
           <td>Republican</td>
-          <td>Green</td>
-          <td>Libertarian</td>
-          <td>McMullin</td>
-          <td>Other</td>
+          <td>Third Party</td>
           <td>Dem %</td>
           <td>GOP %</td>
+          <td>Senate Lean</td>
         </thead>
         <tbody id="states"></tbody>
       </table>
@@ -156,6 +155,7 @@
 <script src="js/d3.v6.min.js"></script>
 <script src="js/topojson.v3.min.js"></script>
 <script src="js/map.js"></script>
+<!-- CS 50: The share button logic contained in the script below used to be at the end of map.js. I moved it to a new file, share.js and added the script below so as to avoid overcrowding map.js -->
 <script src="js/share.js"></script>
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

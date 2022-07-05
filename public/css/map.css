@@ -34,22 +34,26 @@
   stroke-width: .5px;
 }
 
-/* NF sen bar detail */
+/* CS 50: Created the Senate bar attribute here, modeled after the e.v. bar. The only difference here is that the .sen-bar contains a flex display, which allows the text to all exist on the same row. Because the E.V. bar text stays static at either side of the bar, it doesn't need this */
 .sen-bar {
   width: 100%;
   height: 25px;
+  display: flex;
 }
 
+/* CS 50: Created this attribute, no changes from .ev-bar:after */
 .sen-bar:after {
   content: "";
   position: absolute;
   z-index: -1;
-  top: 0;
+  top: 10;
   bottom: 0;
   left: 50%;
   border-left: 2px solid #000;
 }
 
+/* CS 50: Created the seven attributes that follow this one, which apply to the text and numbers that appear within the Senate bar. Modeled after .ev-bar-dem-total, only changes are to drop float as an attribute, and to add position: relative and text-align: center */
+/* CS 50: The changes allow the text to get slotted directly in the middle of their respective boxes*/
 .sen-bar-solid-dem-total {
   position: relative;
   padding: 4px;
@@ -58,7 +62,7 @@
   color: #fff;
   stroke: #000;
   stroke-width: .5px;
-  display: inline;
+  text-align: center;
 }
 
 .sen-bar-likely-dem-total {
@@ -69,7 +73,7 @@
   color: #fff;
   stroke: #000;
   stroke-width: .5px;
-  display: inline;
+  text-align: center;
 }
 
 .sen-bar-lean-dem-total {
@@ -80,7 +84,7 @@
   color: #fff;
   stroke: #000;
   stroke-width: .5px;
-  display: inline;
+  text-align: center;
 }
 
 .sen-bar-tossup-total {
@@ -91,8 +95,7 @@
   color: #fff;
   stroke: #000;
   stroke-width: .5px;
-  display: inline;
-  float: center;
+  text-align: center;
 }
 
 .sen-bar-lean-gop-total {
@@ -103,8 +106,7 @@
   color: #fff;
   stroke: #000;
   stroke-width: .5px;
-  display: inline;
-  float: right;
+  text-align: center;
 }
 
 .sen-bar-likely-gop-total {
@@ -115,8 +117,7 @@
   color: #fff;
   stroke: #000;
   stroke-width: .5px;
-  display: inline;
-  float: right;
+  text-align: center;
 }
 
 .sen-bar-solid-gop-total {
@@ -127,8 +128,7 @@
   color: #fff;
   stroke: #000;
   stroke-width: .5px;
-  display: inline;
-  float: right;
+  text-align: center;
 }
 
 /* Detail table state colors (from ev-bar) */
@@ -280,6 +280,7 @@ table.county-results>tbody>tr>td {
 .dem-45 { fill: rgb(255,231,225); stroke: #fcc; }
 .dem-greater-than-50 { fill: #fff; stroke: #fcc; }
 
+/* CS 50: Updated these values to increase the color contrast so that the margin of victory would be more evident on the map. Compare my application to kevinhayeswilson.com/redraw when "Hide Counties" mode is enabled to see the impact  */
 /* States: Dems won the state */
 .dem-95-state { fill: rgb(0, 45, 98); stroke: #000; stroke-width: .5px; }
 .dem-90-state { fill: rgb(0, 45, 98); stroke: #000; stroke-width: .5px; }
@@ -292,6 +293,7 @@ table.county-results>tbody>tr>td {
 .dem-55-state { fill: rgb(176, 203, 236); stroke: #000; stroke-width: .5px; }
 .dem-50-state { fill: rgb(226,237,252); stroke: #000; stroke-width: .5px; }
 
+/* CS 50: Same update as previous note. */
 /* States: GOP won the state */
 .dem-0-state { fill: rgb(124, 10, 2); stroke: #000; stroke-width: .5px; }
 .dem-5-state { fill: rgb(124, 10, 2); stroke: #000; stroke-width: .5px; }
